@@ -39,6 +39,8 @@ namespace Treehouse.FitnessFrog.Controllers
             return View(entries);
         }
 
+		// ====== ADD ======
+
         public ActionResult Add()
 		{
 			var entry = new Entry()
@@ -51,8 +53,6 @@ namespace Treehouse.FitnessFrog.Controllers
 			return View(entry);
 		}
 
-
-
 		[HttpPost]
 		public ActionResult Add(Entry entry)
 		{
@@ -62,6 +62,8 @@ namespace Treehouse.FitnessFrog.Controllers
 			{
 				_entriesRepository.AddEntry(entry);
 
+				TempData["Message"] = "Your entry was successfully added!";
+
 				return RedirectToAction("Index");
 			}
 
@@ -70,7 +72,7 @@ namespace Treehouse.FitnessFrog.Controllers
 			return View(entry);
 		}
 
-
+		// ====== EDIT ======
 
 		public ActionResult Edit(int? id)
         {
@@ -79,10 +81,8 @@ namespace Treehouse.FitnessFrog.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-			// Get the requested entry from the repository.
 			Entry entry = _entriesRepository.GetEntry((int)id);
 
-			// Return a status of "not found" if the entry wasn't found.
 			if (entry == null)
 			{
 				return HttpNotFound();
@@ -90,65 +90,61 @@ namespace Treehouse.FitnessFrog.Controllers
 
 			SetupActivitiesSelectListItems();
 
-			// Pass the entry into the view.
 			return View(entry);
         }
 
 		[HttpPost]
 		public ActionResult Edit(Entry entry)
 		{
-			// Validate the entry.
 			ValidateEntry(entry);
 
-			// If the entry is valid,
-			// 1) Use the repository to update the entry
-			// 2) Redirect the user to the "Entries" list page
 			if (ModelState.IsValid)
 			{
 				_entriesRepository.UpdateEntry(entry);
+
+				TempData["Message"] = "Your entry was successfully updated!";
+
 				return RedirectToAction("Index");
 			}
 
-			//  Populate the activities select list items ViewBag property.
 			SetupActivitiesSelectListItems();
 
 			return View(entry);
 		}
 
-        public ActionResult Delete(int? id)
+		// ====== DELETE ======
+
+		public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-			// Retrieve entry for the provided if parameter value.
 			Entry entry = _entriesRepository.GetEntry((int)id);
 
-			// Return "Not found" if an entry wasn't found
 			if (entry == null)
 			{
 				return HttpNotFound();
 			}
 
-			// Pass the entry to the view
             return View(entry);
         }
 
 		[HttpPost]
 		public ActionResult Delete(int id)
 		{
-			// Delete the entry.
 			_entriesRepository.DeleteEntry(id);
 
-			// Redirect the user to Entries list page
+			TempData["Message"] = "Your entry was successfully deleted.";
+
 			return RedirectToAction("Index");
 		}
 
+		// ====== PRIVATE METHODS ======
+
 		private void ValidateEntry(Entry entry)
 		{
-			//If there aren't any "Duration" field validation errors
-			//Then make sure that the duration is greater than "0".
 			if (ModelState.IsValidField("Duration") && entry.Duration <= 0)
 			{
 				ModelState.AddModelError("Duration", "The Duration field value must be greater than '0'.");
